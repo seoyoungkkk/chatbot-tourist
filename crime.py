@@ -1,5 +1,5 @@
 pip install streamlit
-streamlit run your_file_name.py
+streamlit run crime.py
 import pandas as pd
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
