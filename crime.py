@@ -1,8 +1,10 @@
-pip install pandas matplotlib scikit-learn gdown
+pip install streamlit
+streamlit run your_file_name.py
 import pandas as pd
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import gdown
+import streamlit as st
 
 # Google Drive 파일 다운로드
 file_url = 'https://docs.google.com/uc?export=download&id=10amnGP2QDd8byQJHp_gk1c8y0OGRGvP3'
@@ -33,14 +35,18 @@ location_data["발생확률(%)"] = (location_data["총범죄건수"] / total_cri
 kmeans = KMeans(n_clusters=3, random_state=42)
 location_data["클러스터"] = kmeans.fit_predict(crime_data)
 
-# 클러스터링 시각화
-plt.figure(figsize=(10, 6))
-plt.scatter(location_data.index, location_data["총범죄건수"], c=location_data["클러스터"], cmap='viridis')
-plt.colorbar(label='Cluster')
-plt.xlabel('지역 Index')
-plt.ylabel('총범죄건수')
-plt.title('K-Means 클러스터링 결과')
-plt.show()
+# Streamlit 앱 UI
+st.title('범죄 데이터 분석 및 클러스터링')
 
-# 장소별 결과 출력
-print(location_data)
+# 클러스터링 시각화
+fig, ax = plt.subplots(figsize=(10, 6))
+scatter = ax.scatter(location_data.index, location_data["총범죄건수"], c=location_data["클러스터"], cmap='viridis')
+fig.colorbar(scatter, ax=ax, label='Cluster')
+ax.set_xlabel('지역 Index')
+ax.set_ylabel('총범죄건수')
+ax.set_title('K-Means 클러스터링 결과')
+
+st.pyplot(fig)
+
+# 장소별 데이터 표시
+st.write('### 장소별 범죄 발생 현황', location_data)
