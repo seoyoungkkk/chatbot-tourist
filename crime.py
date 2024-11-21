@@ -1,45 +1,42 @@
-import pandas as pd
-from sklearn.cluster import KMeans
 import streamlit as st
-import requests
 
-# Streamlit 앱 제목
-st.title('범죄 데이터 분석 앱')
+# 앱 제목
+st.title("범죄 예방 팁 제공")
 
-# Google Drive 파일 URL에서 데이터 로드
-url = 'https://docs.google.com/uc?export=download&id=10amnGP2QDd8byQJHp_gk1c8y0OGRGvP3&confirm=t'
-df = pd.read_csv(url)
-
-# 데이터 전처리
-df.columns = df.iloc[0]  # 첫 행을 컬럼으로 설정
-df = df[1:]  # 데이터 시작
-df.reset_index(drop=True, inplace=True)
-
-# 숫자 데이터를 정리
-numerical_data = df.iloc[:, 2:].apply(pd.to_numeric, errors='coerce').fillna(0)
-
-# 장소 데이터와 범죄 데이터 분리
-location_data = df.iloc[:, :2].copy()
-location_data.columns = ["대분류", "장소"]
-
-# 총 범죄 건수 및 발생 확률 계산
-location_data["총범죄건수"] = numerical_data.sum(axis=1).values
-total_crimes = location_data["총범죄건수"].sum()
-location_data["발생확률(%)"] = (location_data["총범죄건수"] / total_crimes) * 100
-
-# K-Means 클러스터링
-kmeans = KMeans(n_clusters=3, random_state=42)
-location_data["클러스터"] = kmeans.fit_predict(numerical_data)
-
-# Streamlit 사용자 입력 처리
-user_input = st.text_input("목적지를 입력해주세요:")
-
-if user_input:
-    # 입력된 장소 검색
-    result = location_data[location_data["장소"].str.contains(user_input, case=False, na=False)]
+# 범죄 발생 위험 시간대 버튼
+if st.button("범죄 발생 위험 시간대"):
+    time_input = st.text_input("이동하는 시간대가 어떻게 되나요? (예: 21:30)")
     
-    if not result.empty:
-        st.write("### 입력된 장소의 범죄 통계")
-        st.write(result[["대분류", "장소", "총범죄건수", "발생확률(%)"]])
-    else:
-        st.error("입력한 장소는 데이터에 없습니다.")
+    if time_input:
+        try:
+            # 입력된 시간을 시각으로 변환
+            hour, minute = map(int, time_input.split(':'))
+            time_in_minutes = hour * 60 + minute
+            
+            # 시간대에 따른 메시지 제공
+            if 21 * 60 <= time_in_minutes <= 23 * 60 + 59:
+                st.write("가장 위험한 시간대이니 조심하세요!")
+            elif 18 * 60 <= time_in_minutes <= 20 * 60 + 59 or 0 <= time_in_minutes <= 2 * 60 + 59:
+                st.write("위험한 시간대이니 조심하세요!")
+            else:
+                st.write("비교적으로 마음을 놓으셔도 됩니다! 하지만 방심은 금물이에요!!")
+        except ValueError:
+            st.write("올바른 시간 형식으로 입력해주세요 (예: HH:MM)")
+
+# 범죄 발생 위험 날씨 버튼
+if st.button("범죄 발생 위험 날씨"):
+    weather_input = st.text_input("이동할 날의 일기는 어떤가요? (어두움/흐림/맑음/비/눈)")
+    
+    if weather_input:
+        weather_input = weather_input.strip()  # 공백 제거
+        # 날씨에 따른 메시지 제공
+        if weather_input == "어두움":
+            st.write("조심하세요! 가장 위험한 일기입니다!")
+        elif weather_input == "흐림":
+            st.write("조심하세요! 위험한 일기입니다!")
+        elif weather_input == "맑음":
+            st.write("일상적으로 범죄가 자주 일어나는 일기입니다.")
+        elif weather_input in ["비", "눈"]:
+            st.write("상대적으로 범죄가 적게 일어난다고 마음을 놓아서는 안됩니다!")
+        else:
+            st.write("올바른 날씨 정보를 입력해주세요 (어두움/흐림/맑음/비/눈)")
